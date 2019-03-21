@@ -1,0 +1,25 @@
+{
+  "name": "nimchat",
+  "version": "1.0.0",
+  "description": "chatting app",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Frown00/K_7_30_nimchat.git"
+  },
+  "keywords": [
+    "nimchat"
+  ],
+  "author": "Fabian Kuriata",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Frown00/K_7_30_nimchat/issues"
+  },
+  "homepage": "https://github.com/Frown00/K_7_30_nimchat#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
