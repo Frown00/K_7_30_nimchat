@@ -2,8 +2,10 @@
   "name": "nimchat",
   "version": "1.0.0",
   "description": "chatting app",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "server": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,6 +22,17 @@
   },
   "homepage": "https://github.com/Frown00/K_7_30_nimchat#readme",
   "dependencies": {
-    "express": "^4.16.4"
+    "bcrypt": "^3.0.5",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "gravatar": "^1.8.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.4.19",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "validator": "^10.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
   }
 }
