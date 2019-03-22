@@ -1,3 +1,4 @@
 node_modules
 package-lock.json
-config
+config/keys.js
+config/config.txt
