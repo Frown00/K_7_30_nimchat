@@ -9,3 +9,8 @@ const HobbySchema = new Schema({
 });
 
 module.exports = Hobby = mongoose.model('hobbies', HobbySchema);
+
+// seed collection with data
+const HobbySeeder = require('./seeders/HobbySeeder');
+const seeder = new HobbySeeder();
+// seeder.seed();

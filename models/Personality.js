@@ -13,3 +13,9 @@ const PersonalitySchema = new Schema({
 });
 
 module.exports = Personality = mongoose.model('personalities', PersonalitySchema);
+
+
+// seed collection with data
+const PersonalitySeeder = require('./seeders/PersonalitySeeder');
+const seeder = new PersonalitySeeder();
+//seeder.seed();
