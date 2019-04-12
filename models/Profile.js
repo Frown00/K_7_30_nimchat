@@ -20,6 +20,10 @@ const ProfileSchema = new Schema({
   age: {
     type: Number,
   },
+  sex: {
+    type: String,
+    enum: ['FEMALE', 'MALE']
+  },
   location: {
     type: String
   },
