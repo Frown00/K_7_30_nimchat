@@ -78,7 +78,7 @@ router.get('/all', (req, res) => {
         );
 })
 
-// @route   GET api/profile
+// @route   GET api/profiles
 // @desc    Get current users profile
 // @access  Private
 router.get(
@@ -100,8 +100,8 @@ router.get(
     }
 );
 
-// @route   POST api/profile
-// @desc    Create user profile
+// @route   POST api/profiles
+// @desc    Create user profiles
 // @access  Private
 router.post(
     '/',
