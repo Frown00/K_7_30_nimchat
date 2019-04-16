@@ -16,3 +16,12 @@ You will also see any lint errors in the console.
 
 Runs the server and client concurrently if client is exists outside server directory
 
+## DOCUMENTATION
+Link
+
+### Build new version
+[Apidoc](http://apidocjs.com/) is using for generate documentation
+
+To build documentation new version use 
+#### apidoc -e "(node_modules|public)" -o public/apidoc  
+
