@@ -9,7 +9,8 @@
     "server": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "client": "cd.. && cd k_7_30_nimchat-client && npm start",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "devDoc": "npm run dev && npx styleguidist server"
   },
   "repository": {
     "type": "git",

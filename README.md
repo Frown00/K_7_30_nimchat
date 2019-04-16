@@ -1,5 +1,19 @@
 ## NIMCHAT (Backend)
 
+
+## DOCUMENTATION
+[Api documentation](https://frown00.github.io/nimchat-docs/server/)
+[Components documentation](https://frown00.github.io/nimchat-docs/client/)
+
+
+[Apidoc](http://apidocjs.com/) is using for generate api documentation
+[React Styleguidist](https://react-styleguidist.js.org/) is using for generate components documentation
+
+### Build new version
+#### apidoc -e "(node_modules|public)" -o public/apidoc         // server
+#### npx styleguidist build                                     // client
+
+
 ## Available Scripts
 
 In the project directory, you can run:
@@ -16,12 +30,4 @@ You will also see any lint errors in the console.
 
 Runs the server and client concurrently if client is exists outside server directory
 
-## DOCUMENTATION
-Link
-
-### Build new version
-[Apidoc](http://apidocjs.com/) is using for generate documentation
-
-To build documentation new version use 
-#### apidoc -e "(node_modules|public)" -o public/apidoc  
 
