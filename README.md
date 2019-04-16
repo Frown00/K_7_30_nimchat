@@ -2,11 +2,11 @@
 <br>
 
 ### Documentation
-[Api documentation](https://frown00.github.io/nimchat-docs/server/)
+[Api documentation](https://frown00.github.io/nimchat-docs/server/)<br>
 [Components documentation](https://frown00.github.io/nimchat-docs/client/)
 
-
-[Apidoc](http://apidocjs.com/) is using for generate api documentation
+<br>
+[Apidoc](http://apidocjs.com/) is using for generate api documentation<br>
 [React Styleguidist](https://react-styleguidist.js.org/) is using for generate components documentation
 
 ### Build new version
