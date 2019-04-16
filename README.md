@@ -6,8 +6,8 @@
 [Components documentation](https://frown00.github.io/nimchat-docs/client/)
 
 <br>
-[Apidoc](http://apidocjs.com/) is using for generate api documentation<br>
-[React Styleguidist](https://react-styleguidist.js.org/) is using for generate components documentation
+[Apidoc](http://apidocjs.com/) used for generate api documentation<br>
+[React Styleguidist](https://react-styleguidist.js.org/) used for generate components documentation
 
 ### Build new version
 Server
