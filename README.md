@@ -1,7 +1,7 @@
 ## NIMCHAT (Backend)
+<br>
 
-
-## DOCUMENTATION
+### Documentation
 [Api documentation](https://frown00.github.io/nimchat-docs/server/)
 [Components documentation](https://frown00.github.io/nimchat-docs/client/)
 
@@ -10,8 +10,10 @@
 [React Styleguidist](https://react-styleguidist.js.org/) is using for generate components documentation
 
 ### Build new version
-#### apidoc -e "(node_modules|public)" -o public/apidoc         // server
-#### npx styleguidist build                                     // client
+Server
+#### apidoc -e "(node_modules|public)" -o public/apidoc
+Client
+#### npx styleguidist build
 
 
 ## Available Scripts
