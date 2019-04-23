@@ -22,7 +22,7 @@ const ProfileSchema = new Schema({
   },
   sex: {
     type: String,
-    enum: ['FEMALE', 'MALE']
+    enum: ['FEMALE', 'MALE', 'OTHER']
   },
   location: {
     type: String
@@ -35,7 +35,8 @@ const ProfileSchema = new Schema({
     type: String
   },
   motivation: {
-    type: String
+    type: String,
+    enum: ['BORED', 'FRIENDS', 'LOVE', 'JUST_CHAT', 'OTHER']
   },
   hobbies: [{
     type: mongoose.Schema.Types.ObjectId,
