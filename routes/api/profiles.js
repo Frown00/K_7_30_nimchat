@@ -6,6 +6,7 @@ const passport = require('passport');
 const validateProfileInput = require('../../validation/profile');
 
 const Profile = require('../../models/Profile');
+const Personality = require('../../models/Personality');
 
 // @route   GET api/profile/test
 // @dest    Test profile route
@@ -94,6 +95,8 @@ router.get(
                     errors.noprofile = 'Thers is no profile for this user';
                     return res.status(404).json(errors);
                 }
+                profile["age"] = profile["age"] > 0 ? profile["age"] : '';
+                console.log(profile);
                 res.json(profile);
             })
             .catch(err => res.status(404).json(err));
@@ -121,33 +124,60 @@ router.post(
         if (req.body.handle) profileFields.handle = req.body.handle;
         if (req.body.location) profileFields.location = req.body.location;
         if (req.body.bio) profileFields.bio = req.body.bio;
-        if (req.body.status) profileFields.status = req.body.status;
 
         // enums
         if (req.body.sex) profileFields.sex = req.body.sex;
+        if (req.body.motivation) profileFields.motivation = req.body.motivation;
+        if (req.body.status) profileFields.maritalStatus = req.body.maritalStatus;
 
-        // TODO
-        if (req.body.profession) profileFields.profession = req.body.profession;
 
         // number fields
         if (req.body.age) profileFields.age = req.body.age;
 
         // one from list
-        if (req.body.motivation) profileFields.motivation = req.body.motivation;
         if (req.body.personality) profileFields.personality = req.body.personality;
+        if (req.body.profession) profileFields.profession = req.body.profession;
 
         // array fields
-        if (req.body.hobbies) profileFields.hobbies = req.body.hobbies;
+        if (req.body.hobbies) profileFields.hobbies = req.body.hobbies.split(',');
+
 
         Profile.findOne({ user: req.user.id })
             .then(profile => {
                 if (profile) {
                     // Update
-                    Profile.findOneAndUpdate(
-                        { user: req.user.id },
-                        { $set: profileFields },
-                        { new: true }
-                    ).then(profile => res.json(profile));
+                    findPersonalityByName(profileFields.personality)
+                        .then((personality) => {
+                            if (personality) {
+                                return Promise.all([personality, findProfessionByName(profileFields.profession)])
+                            }
+                            else {
+                                errors.personality = "This personality doesn't exist. If it is please contact with us!";
+                                return Promise.all([{}, findProfessionByName(profileFields.profession)])
+                            }
+                        })
+                        .then(([personality, profession]) => {
+                            if (profession) {
+                                return Promise.all([personality, profession, findHobbiesByName(profileFields.hobbies)])
+                            }
+                            else {
+                                errors.profession = "This profession doesn't exist. If it is please contact with us!"
+                                return Promise.all([personality, {}, findHobbiesByName(profileFields.hobbies)])
+                            }
+                        })
+                        .then(([personality, profession, hobbies]) => {
+                            profileFields.personality = personality;
+                            profileFields.profession = profession;
+                            profileFields.hobbies = hobbies;
+
+                            Profile.findOneAndUpdate(
+                                { user: req.user.id },
+                                { $set: profileFields },
+                                { new: true }
+                            ).then(profile => res.json(profile));
+                        })
+
+
                 } else {
                     // Create
 
@@ -159,11 +189,55 @@ router.post(
                         }
 
                         // Save
-                        new Profile(profileFields).save().then(profile => res.json(profile));
+                        findPersonalityByName(profileFields.personality)
+                            .then((personality) => {
+                                if (personality) {
+                                    return Promise.all([personality, findProfessionByName(profileFields.profession)])
+                                }
+                                else {
+                                    errors.personality = "This personality doesn't exist. If it is please contact with us!";
+                                    return Promise.all([{}, findProfessionByName(profileFields.profession)])
+                                }
+                            })
+                            .then(([personality, profession]) => {
+                                if (profession) {
+                                    return Promise.all([personality, profession, findHobbiesByName(profileFields.hobbies)])
+                                }
+                                else {
+                                    errors.profession = "This profession doesn't exist. If it is please contact with us!"
+                                    return Promise.all([personality, {}, findHobbiesByName(profileFields.hobbies)])
+                                }
+                            })
+                            .then(([personality, profession, hobbies]) => {
+                                profileFields.personality = personality;
+                                profileFields.profession = profession;
+                                profileFields.hobbies = hobbies;
+
+                                new Profile(profileFields).save().then(profile => res.json(profile));
+
+
+                            })
                     })
                 }
             })
     }
 );
 
+function findPersonalityByName(personality) {
+    return Personality.findOne({ name: personality });
+}
+
+function findProfessionByName(profession) {
+    return Profession.findOne({ name: profession });
+}
+
+function findHobbiesByName(hobbies) {
+    return Hobby.find({
+        'name': { $in: hobbies }
+    }, function (err, docs) {
+        if (docs) {
+            //console.log(docs);
+        }
+    })
+}
 module.exports = router;

@@ -102,7 +102,8 @@ router.post('/login', (req, res) => {
                         const payload = {
                             id: user.id,
                             name: user.name,
-                            avatar: user.avatar
+                            avatar: user.avatar,
+                            status: "LOGGED_IN"
                         }
 
                         // Sign token
@@ -136,7 +137,8 @@ router.get('/current',
             id: req.user.id,
             name: req.user.name,
             email: req.user.email,
-            avatar: req.user.avatar
+            avatar: req.user.avatar,
+            status: req.user.status
         });
     })
 

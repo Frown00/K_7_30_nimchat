@@ -18,13 +18,13 @@ const ProfessionSchema = new Schema({
 module.exports = Profession = mongoose.model('professions', ProfessionSchema);
 
 // seed collection with data
-const ProfessionSeeder = require('./seeders/ProfessionSeeder');
-Profession.deleteMany({}, function (err, data) {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("Deleted");
-  }
-});
-const seeder = new ProfessionSeeder();
-seeder.seed();
+// const ProfessionSeeder = require('./seeders/ProfessionSeeder');
+// Profession.deleteMany({}, function (err, data) {
+//   if (err) {
+//     console.log(err);
+//   } else {
+//     console.log("Deleted");
+//   }
+// });
+// const seeder = new ProfessionSeeder();
+// seeder.seed();

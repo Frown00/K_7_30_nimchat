@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 // Load models
-const Hobby = require('./Hobby');
-const Personality = require('./Personality');
+const Hobby = require('./Hobby').schema;
+const Personality = require('./Personality').schema;
+const Profession = require('./Profession').schema;
 
 
 // Create Schema
@@ -28,22 +29,21 @@ const ProfileSchema = new Schema({
     type: String
   },
   personality: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'personalities'
+    type: Personality,
+    default: {}
   },
   profession: {
-    type: String
+    type: Profession,
+    default: {}
   },
   motivation: {
     type: String,
     enum: ['BORED', 'FRIENDS', 'LOVE', 'JUST_CHAT', 'OTHER']
   },
-  hobbies: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'hobbies'
-  }],
-  status: {
-    type: String
+  hobbies: [Hobby],
+  maritalStatus: {
+    type: String,
+    enum: ['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']
   },
   bio: {
     type: String
