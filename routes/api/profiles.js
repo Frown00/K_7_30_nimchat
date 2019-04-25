@@ -42,7 +42,13 @@ router.get('/handle/:handle', (req, res) => {
 // @route   GET api/profile/user/:user_id
 // @desc    Get profile by user ID
 // @access  Public
-
+/**
+ * @api {get} api/profiles/user/:user_id Get profile of specific user
+ * @apiName GetUserProfile
+ * @apiGroup Profiles
+ * @apiPermission Public
+ * @apiParam {Number} user_id Unique user id
+ */
 router.get('/user/:user_id', (req, res) => {
     Profile.findOne({
         user: req.params.user_id
@@ -63,6 +69,12 @@ router.get('/user/:user_id', (req, res) => {
 // @route   GET api/profile/all
 // @desc    Get all profiles
 // @access  Public
+/**
+ * @api {get} api/profiles/all Get all profiles
+ * @apiName GetAllProfiles
+ * @apiGroup Profiles
+ * @apiPermission Public
+ */
 router.get('/all', (req, res) => {
     Profile.find()
         .populate('user', ['name', 'avatar'])
@@ -82,6 +94,12 @@ router.get('/all', (req, res) => {
 // @route   GET api/profiles
 // @desc    Get current users profile
 // @access  Private
+/**
+ * @api {get} api/profiles Get current user profile
+ * @apiName GetCurrentUserProfile
+ * @apiGroup Profiles
+ * @apiPermission Private
+ */
 router.get(
     '/',
     passport.authenticate('jwt', { session: false }),
@@ -103,11 +121,17 @@ router.get(
     }
 );
 
-// @route   POST api/profiles
+// @route   POST api/profiles/edit
 // @desc    Create user profiles
 // @access  Private
+/**
+ * @api {post} api/profiles/edit Edit current user profile
+ * @apiName EditCurrentUserProfile
+ * @apiGroup Profiles
+ * @apiPermission Private
+ */
 router.post(
-    '/',
+    '/edit',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {
 
@@ -128,7 +152,7 @@ router.post(
         // enums
         if (req.body.sex) profileFields.sex = req.body.sex;
         if (req.body.motivation) profileFields.motivation = req.body.motivation;
-        if (req.body.status) profileFields.maritalStatus = req.body.maritalStatus;
+        if (req.body.maritalStatus) profileFields.maritalStatus = req.body.maritalStatus;
 
 
         // number fields
@@ -139,8 +163,15 @@ router.post(
         if (req.body.profession) profileFields.profession = req.body.profession;
 
         // array fields
-        if (req.body.hobbies) profileFields.hobbies = req.body.hobbies.split(',');
+        if (req.body.hobbies) {
+            profileFields.hobbies = req.body.hobbies.split(',');
+            profileFields.hobbies = profileFields.hobbies.map(hobby => {
+                return hobby.trim();
+            }
+            );
 
+        }
+        console.log(req.body);
 
         Profile.findOne({ user: req.user.id })
             .then(profile => {
@@ -240,4 +271,5 @@ function findHobbiesByName(hobbies) {
         }
     })
 }
+
 module.exports = router;

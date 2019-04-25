@@ -13,18 +13,18 @@ const validateLoginInput = require('../../validation/login');
 // Load user model
 const User = require('../../models/User');
 
-/**
- * @api {get} api/user
- * @apiName GetUser
- * @apiGroup Users
- */
-
 router.get('/test', (req, res) => res.json({ msg: "Users works" })
 );
 
 // @route GET api/users/register
 // @desc Register user
 // @access Public
+/**
+ *  @api {post} api/users/register Register
+ *  @apiName RegisterUser
+ *  @apiGroup Users
+ *  @apiPermission Public
+ */
 router.post('/register', (req, res) => {
     const { errors, isValid } = validateRegisterInput(req.body);
 
@@ -73,6 +73,14 @@ router.post('/register', (req, res) => {
 // @route   GET api/users/login
 // @desc    Login User / Returning JWT Token
 // @access  Public
+/**
+ * @api {post} /api/users/login Login
+ * @apiName UserLogin
+ * @apiGroup Users
+ * @apiPermission Public
+ * @apiParam {String} email       user email address
+ * @apiParam {String} password    user password
+ */
 router.post('/login', (req, res) => {
 
     const { errors, isValid } = validateLoginInput(req.body);
@@ -130,6 +138,13 @@ router.post('/login', (req, res) => {
 // @route   GET api/users/current
 // @desc    Returning current user
 // @access  Private
+
+/**
+ * @api {get} api/users/current Get current user data
+ * @apiName GetCurrentUser
+ * @apiGroup Users
+ * @apiPermission Private
+ */
 router.get('/current',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {
