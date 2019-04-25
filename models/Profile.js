@@ -40,7 +40,10 @@ const ProfileSchema = new Schema({
     type: String,
     enum: ['BORED', 'FRIENDS', 'LOVE', 'JUST_CHAT', 'OTHER']
   },
-  hobbies: [Hobby],
+  hobbies: {
+    type: [Hobby],
+    default: []
+  },
   maritalStatus: {
     type: String,
     enum: ['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']

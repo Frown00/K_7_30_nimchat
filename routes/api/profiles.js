@@ -134,8 +134,11 @@ router.post(
     '/edit',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {
-
+        const handleRandom = require('../../utilities/randomId');
+        req.body.handle = handleRandom();
         const { errors, isValid } = validateProfileInput(req.body);
+
+
         if (!isValid) {
             return res.status(400).json(errors);
         }
@@ -145,7 +148,9 @@ router.post(
         profileFields.user = req.user.id;
 
         // string fields
-        if (req.body.handle) profileFields.handle = req.body.handle;
+        if (req.body.handle)
+            profileFields.handle = req.body.handle;
+
         if (req.body.location) profileFields.location = req.body.location;
         if (req.body.bio) profileFields.bio = req.body.bio;
 
@@ -171,7 +176,6 @@ router.post(
             );
 
         }
-        console.log(req.body);
 
         Profile.findOne({ user: req.user.id })
             .then(profile => {
@@ -211,7 +215,7 @@ router.post(
 
                 } else {
                     // Create
-
+                    console.log(profileFields);
                     //
                     Profile.findOne({ handle: profileFields.handle }).then(profile => {
                         if (profile) {
@@ -265,11 +269,11 @@ function findProfessionByName(profession) {
 function findHobbiesByName(hobbies) {
     return Hobby.find({
         'name': { $in: hobbies }
-    }, function (err, docs) {
+    }, ['name', 'type', 'effort'], function (err, docs) {
         if (docs) {
-            //console.log(docs);
+            console.log(docs);
         }
-    })
+    });
 }
 
 module.exports = router;

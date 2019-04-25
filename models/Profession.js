@@ -4,7 +4,8 @@ const Schema = mongoose.Schema;
 const ProfessionSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   type: {
     type: String,

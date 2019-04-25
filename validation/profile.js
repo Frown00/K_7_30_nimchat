@@ -5,7 +5,7 @@ module.exports = function validateProfileInput(data) {
   let errors = {};
 
   data.handle = !isEmpty(data.handle) ? data.handle : '';
-  data.status = !isEmpty(data.status) ? data.status : '';
+  data.maritalStatus = !isEmpty(data.maritalStatus) ? data.maritalStatus : '';
   data.hobbies = !isEmpty(data.hobbies) ? data.hobbies : '';
   data.location = !isEmpty(data.location) ? data.location : '';
   data.bio = !isEmpty(data.bio) ? data.bio : '';
@@ -16,7 +16,7 @@ module.exports = function validateProfileInput(data) {
   data.personality = !isEmpty(data.personality) ? data.personality : '';
 
 
-  if (!Validator.isLength(data.handle, { min: 2, max: 40 })) {
+  if (!Validator.isLength(data.handle, { min: 2, max: 80 })) {
     errors.handle = 'Handle needs to between 2 and 40 characters';
   }
 

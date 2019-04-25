@@ -7,7 +7,7 @@
     "client-install": "cd.. && cd k_7_30_nimchat-client && npm install",
     "start": "node server.js",
     "server": "nodemon server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha 'test/apiTest.js'",
     "client": "cd.. && cd k_7_30_nimchat-client && npm start",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "devDoc": "npm run dev && npx styleguidist server"
@@ -38,6 +38,8 @@
     "validator": "^10.11.0"
   },
   "devDependencies": {
-    "nodemon": "^1.18.10"
+    "mocha": "^6.1.4",
+    "nodemon": "^1.18.10",
+    "supertest": "^4.0.2"
   }
 }
