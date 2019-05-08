@@ -7,6 +7,7 @@ const validateProfileInput = require('../../validation/profile');
 const handleRandom = require('../../utilities/randomId');
 const isEmpty = require('../../validation/isEmpty');
 const Profile = require('../../models/Profile');
+const User = require('../../models/User');
 const Personality = require('../../models/Personality');
 
 
@@ -185,6 +186,12 @@ router.post(
         } else {
             profileFields.hobbies = [];
         }
+        console.log(req.body.name);
+        User.findOneAndUpdate(
+            { _id: req.user.id },
+            { name: req.body.name }
+        )
+            .then((user) => errors.name = "Wrong name!");
 
         Profile.findOne({ user: req.user.id })
             .then(profile => {
