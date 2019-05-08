@@ -11,7 +11,7 @@
 
 ### Build new version
 Server
-#### apidoc -e "(node_modules|public)" -o public/apidoc
+#### apidoc -e "(node_modules|public)" -o ../nimchat-docs/server
 Client
 #### npx styleguidist build
 

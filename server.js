@@ -42,6 +42,11 @@ app.use('/api/personalities', personalities);
 app.use('/api/hobbies', hobbies);
 app.use('/api/professions', professions);
 
-const port = process.env.PORT || 5000;
+port = process.env.PORT || 5000;
 
-app.listen(port, () => console.log(`Server runnning on port ${port}!`));
+if (!module.parent) {
+    app.listen(port, () => console.log(`Server runnning on port ${port}!`));
+}
+
+
+module.exports = app;

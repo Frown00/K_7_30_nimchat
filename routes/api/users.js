@@ -60,7 +60,7 @@ router.post('/register', (req, res) => {
 
                         newUser.password = hash;
                         newUser.save()
-                            .then(user => res.json(user))
+                            .then(user => res.json(user, 201))
                             .catch(err => console.log(err));
                     });
                 });
@@ -156,5 +156,25 @@ router.get('/current',
             status: req.user.status
         });
     })
+
+router.post('/delete',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        const id = req.user.id;
+        let message = { message: "" }
+        User.deleteOne({ _id: id }, function (err) {
+            if (!err) {
+                message.message = "User deleted"
+            }
+            else {
+                message.message = "error";
+            }
+        })
+            .then(() => {
+                return res.status(204).json(message);
+            })
+
+    }
+)
 
 module.exports = router;
