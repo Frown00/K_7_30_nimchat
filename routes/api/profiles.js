@@ -207,12 +207,8 @@ router.post(
                             ).then(profile => res.json(profile))
                                 .catch((err) => console.log(`Error when updating: ${err}`));
                         })
-
-
                 } else {
                     // Create
-                    //
-
                     Profile.findOne({ handle: profileFields.handle })
                         .then(profile => {
                             if (profile) {
@@ -223,7 +219,6 @@ router.post(
                         });
 
                     // Save
-
                     prepareProfileFields(profileFields.personality, profileFields.profession, profileFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
 
@@ -266,7 +261,6 @@ function prepareProfileFields(person, prof, hob) {
 }
 
 function findPersonalityByName(personality) {
-
     return Personality.findOne({ name: personality }, ["name", "shortcut", "role", "description", "traits", "-_id"])
         .then(personality => {
             let personalityObject;
@@ -280,7 +274,6 @@ function findPersonalityByName(personality) {
 }
 
 function findProfessionByName(profession) {
-
     return Profession.findOne({ name: profession }, ['name', 'type', '-_id'])
         .then(profession => {
             const professionObject = profession ? profession : {};
@@ -299,5 +292,44 @@ function findHobbiesByName(hobbies) {
         }
     });
 }
+
+
+router.get(
+    '/preferences/all',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        console.log(req.body);
+    }
+);
+
+router.post(
+    '/preferences/add',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        Profile.findOne({ user: req.user.id })
+            .then(profile => {
+                if (profile) {
+                    return res.json(profile);
+                }
+            });
+        console.log(req.body);
+    }
+);
+
+router.get(
+    '/preferences/:name',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        Profile.findOne({ user: req.user.id })
+            .then(profile => {
+                if (profile) {
+                    console.log(profile);
+                }
+                else {
+                    console.log("Profile doesn't exists");
+                }
+            })
+    }
+);
 
 module.exports = router;
