@@ -4,10 +4,10 @@ const Schema = mongoose.Schema;
 var TraitSchema = new Schema({ name: String });
 
 const PersonalitySchema = new Schema({
+
   name: {
     type: String,
     required: true,
-    index: true,
     unique: true
   },
   shortcut: {

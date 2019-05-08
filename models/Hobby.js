@@ -5,7 +5,7 @@ const HobbySchema = new Schema({
   name: {
     type: String,
     required: true,
-    index: true
+    unique: true
   },
   type: {
     type: String,
