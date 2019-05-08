@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 
 const validateProfileInput = require('../../validation/profile');
+const validateProfilePreferences = require('../../validation/profilePreferences');
+
 const handleRandom = require('../../utilities/randomId');
 const isEmpty = require('../../validation/isEmpty');
 const Profile = require('../../models/Profile');
@@ -125,11 +127,11 @@ router.get(
 );
 
 // @route   POST api/profiles/edit
-// @desc    Create user profiles
+// @desc    Create user profiles or edit user profile 
 // @access  Private
 /**
  * @api {post} api/profiles/edit Edit current user profile
- * @apiName EditCurrentUserProfile
+ * @apiName EditCurrentUserProfile or create one
  * @apiGroup Profiles
  * @apiPermission Private
  */
@@ -214,12 +216,8 @@ router.post(
                             ).then(profile => res.json(profile))
                                 .catch((err) => console.log(`Error when updating: ${err}`));
                         })
-
-
                 } else {
                     // Create
-                    //
-
                     Profile.findOne({ handle: profileFields.handle })
                         .then(profile => {
                             if (profile) {
@@ -230,7 +228,6 @@ router.post(
                         });
 
                     // Save
-
                     prepareProfileFields(profileFields.personality, profileFields.profession, profileFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
 
@@ -273,7 +270,6 @@ function prepareProfileFields(person, prof, hob) {
 }
 
 function findPersonalityByName(personality) {
-
     return Personality.findOne({ name: personality }, ["name", "shortcut", "role", "description", "traits", "-_id"])
         .then(personality => {
             let personalityObject;
@@ -287,7 +283,6 @@ function findPersonalityByName(personality) {
 }
 
 function findProfessionByName(profession) {
-
     return Profession.findOne({ name: profession }, ['name', 'type', '-_id'])
         .then(profession => {
             const professionObject = profession ? profession : {};
@@ -306,5 +301,212 @@ function findHobbiesByName(hobbies) {
         }
     });
 }
+
+/**
+ * @api {get} api/profiles/preferences Request for all user partners profiles
+ * @apiName GetAllPartnersProfiles
+ * @apiGroup Profiles
+ * @apiPermission Private
+ */
+router.get(
+    '/preferences',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        console.log(req.body);
+        const errors = {};
+        Profile.findOne({ user: req.user.id })
+            .then(profile => {
+                if (profile) {
+                    Profile.findOne(
+                        { user: req.user.id },
+                        ["partnersProfilePreference", "-_id"]
+                    )
+                        .then(profilesPreference => {
+                            const preferences = profilesPreference.partnersProfilePreference;
+                            if (preferences.length > 0) {
+                                return res.json(preferences);
+                            } else {
+                                errors.preference = "There is no preferences";
+                                return res.status(400).json(errors)
+                            }
+                        })
+                    console.log(profile);
+                }
+                else {
+                    console.log("Profile doesn't exists");
+                }
+            })
+    }
+);
+
+/**
+ * @api {post} api/profiles/preferences/add Add new partner preference
+ * @apiName AddPartnerPreference
+ * @apiGroup Profiles
+ * @apiPermission Private
+ */
+router.post(
+    '/preferences/add',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+
+        const { errors, isValid } = validateProfilePreferences(req.body);
+
+        if (!isValid) {
+            return res.status(400).json(errors);
+        }
+
+        // Get fields
+        let profilePreferenceFields = {};
+
+        // string fields
+        if (req.body.name) profilePreferenceFields.name = req.body.name;
+        if (req.body.location) profilePreferenceFields.location = req.body.location;
+
+        // enums
+        if (req.body.sex) profilePreferenceFields.sex = req.body.sex;
+        if (req.body.motivation) profilePreferenceFields.motivation = req.body.motivation;
+        if (req.body.maritalStatus) profilePreferenceFields.maritalStatus = req.body.maritalStatus;
+
+        // number fields
+        console.log(req.body.age);
+        req.body.age = JSON.parse(req.body.age);
+        if (req.body.age.from && req.body.age.to) {
+            profilePreferenceFields.age = req.body.age;
+        } else {
+            profilePreferenceFields.age = null;
+        }
+        // one from list
+        if (req.body.personality)
+            profilePreferenceFields.personality = req.body.personality;
+        else
+            profilePreferenceFields.personality = "";
+        if (req.body.profession) {
+            profilePreferenceFields.profession = req.body.profession;
+        } else {
+            profilePreferenceFields.profession = "";
+        }
+        // array fields
+        if (req.body.hobbies) {
+            profilePreferenceFields.hobbies = req.body.hobbies.split(',');
+            profilePreferenceFields.hobbies = profilePreferenceFields.hobbies.map(hobby => {
+                return hobby.trim();
+            }
+            );
+
+        } else {
+            profilePreferenceFields.hobbies = [];
+        }
+        // profilePreferenceFields = JSON.parse(JSON.stringify(profilePreferenceFields).replace(/'/g, '"'));
+        Profile.findOne({ user: req.user.id })
+            .then(profile => {
+                if (profile) {
+
+                    // Check if profilePreference exists
+                    const profilePreferences = profile.partnersProfilePreference;
+                    for (let profile of profilePreferences) {
+                        if (profile.name === profilePreferenceFields.name) {
+                            errors.name = "That name already exists";
+                            res.status(400).json(errors);
+                        }
+                    }
+
+                    prepareProfileFields(profilePreferenceFields.personality, profilePreferenceFields.profession, profilePreferenceFields.hobbies)
+                        .then(([personality, profession, hobbies]) => {
+                            console.log(personality);
+                            console.log(profession);
+                            console.log(hobbies);
+                            let preference = {
+                                "name": profilePreferenceFields.name,
+                                "location": profilePreferenceFields.location,
+                                "sex": profilePreferenceFields.sex,
+                                "motivation": profilePreferenceFields.motivation,
+                                "maritalStatus": profilePreferenceFields.maritalStatus,
+                                "age": profilePreferenceFields.age,
+                                "personality": personality,
+                                "profession": profession,
+                                "hobbies": hobbies
+                            }
+
+                            Profile.findOneAndUpdate(
+                                { user: req.user.id },
+                                {
+                                    $push: { partnersProfilePreference: preference }
+                                },
+                                { new: true },
+                            ).then(profile => res.json(profile))
+                                .catch((err) => console.log(`Error when updating: ${err}`));
+                        })
+
+                }
+            });
+    }
+);
+
+/**
+ * @api {post} api/profiles/preferences/:name/delete Delete partner preference with name from param
+ * @apiName DeletePartnerPreference
+ * @apiGroup Profiles
+ * @apiPermission Private
+ */
+router.post('/preferences/:name/delete',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        let errors = {};
+        Profile.findOne({ user: req.user.id })
+            .then(profile => {
+                if (profile) {
+                    Profile.findOneAndUpdate(
+                        { user: req.user.id },
+                        {
+                            $pull: { partnersProfilePreference: { name: req.params.name } }
+                        }
+                    )
+                        .then(profile => res.json(profile))
+                        .catch((err) => console.log(`Error when deleting preference: ${err}`));
+                }
+                else {
+                    errors.profile = "Profile doesn't exists";
+                }
+            })
+    }
+)
+
+/**
+ * @api {get} api/profiles/preferences/:name Request for user partner profile with specific name from param
+ * @apiName GetPartnerProfile
+ * @apiGroup Profiles
+ * @apiPermission Private
+ */
+router.get(
+    '/preferences/:name',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        const errors = {};
+        Profile.findOne({ user: req.user.id })
+            .then(profile => {
+                if (profile) {
+                    Profile.findOne(
+                        { user: req.user.id },
+                        ["partnersProfilePreference", "-_id"]
+                    )
+                        .then(profilesPreference => {
+                            const preferences = profilesPreference.partnersProfilePreference;
+                            preferences.map((preference) => {
+                                if (preference.name === req.params.name) {
+                                    return res.json(preference);
+                                }
+                            })
+                            errors.preference = "Preference with this name doesn't exists";
+                            return res.status(400).json(errors)
+                        })
+                    console.log(profile);
+                }
+                else {
+                    console.log("Profile doesn't exists");
+                }
+            })
+    }
+);
 
 module.exports = router;
