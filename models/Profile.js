@@ -64,6 +64,9 @@ const PartnerPreference = new Schema({
     required: true,
     unique: true
   },
+  location: {
+    type: String,
+  },
   age: {
     from: {
       type: Number
