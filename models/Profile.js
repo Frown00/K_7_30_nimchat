@@ -58,6 +58,22 @@ const Hobby = new Schema({
   }
 }, { _id: false })
 
+const Precedence = new Schema(
+  {
+    profileTraitName: {
+      type: String,
+    },
+    precedence: {
+      type: Number,
+      default: 0
+    },
+    isRequired: {
+      type: Boolean,
+      default: false
+    }
+  }, { _id: false }
+)
+
 const PartnerPreference = new Schema({
   name: {
     type: String,
@@ -98,7 +114,9 @@ const PartnerPreference = new Schema({
   maritalStatus: {
     type: String,
     enum: ['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']
-  }
+  },
+  precedence: [Precedence]
+
 }, { _id: false });
 
 

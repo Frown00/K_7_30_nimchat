@@ -192,7 +192,7 @@ router.post(
             .then(profile => {
                 if (profile) {
                     // Update
-                    prepareProfileFields(profileFields.personality, profileFields.profession, profileFields.hobbies)
+                    findAllProfileSubdocuments(profileFields.personality, profileFields.profession, profileFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
 
                             profileFields.personality = personality;
@@ -221,7 +221,7 @@ router.post(
                         });
 
                     // Save
-                    prepareProfileFields(profileFields.personality, profileFields.profession, profileFields.hobbies)
+                    findAllProfileSubdocuments(profileFields.personality, profileFields.profession, profileFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
 
                             profileFields.personality = isEmpty(personality) ? null : personality;
@@ -237,63 +237,6 @@ router.post(
     }
 );
 
-function prepareProfileFields(person, prof, hob) {
-    return findPersonalityByName(person)
-        .then((personality) => {
-            if (personality) {
-                return Promise.all([personality, findProfessionByName(prof)])
-            }
-            else {
-                console.log(personality);
-                errors.personality = "This personality doesn't exist. If it is please contact with us!";
-                return Promise.all([{}, findProfessionByName(prof)])
-            }
-        })
-        .then(([personality, profession]) => {
-            if (profession) {
-                return Promise.all([personality, profession, findHobbiesByName(hob)])
-            }
-            else {
-                errors.profession = "This profession doesn't exist. If it is please contact with us!"
-                profession = {};
-                return Promise.all([personality, {}, findHobbiesByName(hob)])
-            }
-        })
-        .catch((err) => console.log(`Error when preparing profilefields: ${err}`))
-}
-
-function findPersonalityByName(personality) {
-    return Personality.findOne({ name: personality }, ["name", "shortcut", "role", "description", "traits", "-_id"])
-        .then(personality => {
-            let personalityObject;
-            if (personality === null)
-                personalityObject = {};
-            else
-                personalityObject = personality;
-
-            return Promise.resolve(personalityObject);
-        });
-}
-
-function findProfessionByName(profession) {
-    return Profession.findOne({ name: profession }, ['name', 'type', '-_id'])
-        .then(profession => {
-            const professionObject = profession ? profession : {};
-            return Promise.resolve(professionObject);
-        })
-}
-
-function findHobbiesByName(hobbies) {
-    return Hobby.find({
-        'name': { $in: hobbies }
-    }, ['name', 'type', 'effort', '-_id'], function (err, docs) {
-        if (docs) {
-        }
-        else {
-            console.log(`Error with saving hobbies: ${err}`);
-        }
-    });
-}
 
 /**
  * @api {get} api/profiles/preferences Request for all user partners profiles
@@ -386,9 +329,12 @@ router.post(
                 return hobby.trim();
             }
             );
-
         } else {
             profilePreferenceFields.hobbies = [];
+        }
+
+        if (req.body.precedence) {
+            profilePreferenceFields.precedence = JSON.parse(req.body.precedence);
         }
         // profilePreferenceFields = JSON.parse(JSON.stringify(profilePreferenceFields).replace(/'/g, '"'));
         Profile.findOne({ user: req.user.id })
@@ -404,11 +350,8 @@ router.post(
                         }
                     }
 
-                    prepareProfileFields(profilePreferenceFields.personality, profilePreferenceFields.profession, profilePreferenceFields.hobbies)
+                    findAllProfileSubdocuments(profilePreferenceFields.personality, profilePreferenceFields.profession, profilePreferenceFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
-                            console.log(personality);
-                            console.log(profession);
-                            console.log(hobbies);
                             let preference = {
                                 "name": profilePreferenceFields.name,
                                 "location": profilePreferenceFields.location,
@@ -418,7 +361,8 @@ router.post(
                                 "age": profilePreferenceFields.age,
                                 "personality": personality,
                                 "profession": profession,
-                                "hobbies": hobbies
+                                "hobbies": hobbies,
+                                "precedence": profilePreferenceFields.precedence
                             }
 
                             Profile.findOneAndUpdate(
@@ -501,5 +445,64 @@ router.get(
             })
     }
 );
+
+function findAllProfileSubdocuments(person, prof, hob) {
+    return findPersonalityByName(person)
+        .then((personality) => {
+            if (personality) {
+                return Promise.all([personality, findProfessionByName(prof)])
+            }
+            else {
+                console.log(personality);
+                errors.personality = "This personality doesn't exist. If it is please contact with us!";
+                return Promise.all([{}, findProfessionByName(prof)])
+            }
+        })
+        .then(([personality, profession]) => {
+            if (profession) {
+                return Promise.all([personality, profession, findHobbiesByName(hob)])
+            }
+            else {
+                errors.profession = "This profession doesn't exist. If it is please contact with us!"
+                profession = {};
+                return Promise.all([personality, {}, findHobbiesByName(hob)])
+            }
+        })
+        .catch((err) => console.log(`Error when preparing profilefields: ${err}`))
+}
+
+function findPersonalityByName(personality) {
+    return Personality.findOne({ name: personality }, ["name", "shortcut", "role", "description", "traits", "-_id"])
+        .then(personality => {
+            let personalityObject;
+            if (personality === null)
+                personalityObject = {};
+            else
+                personalityObject = personality;
+
+            return Promise.resolve(personalityObject);
+        });
+}
+
+function findProfessionByName(profession) {
+    return Profession.findOne({ name: profession }, ['name', 'type', '-_id'])
+        .then(profession => {
+            const professionObject = profession ? profession : {};
+            return Promise.resolve(professionObject);
+        })
+}
+
+function findHobbiesByName(hobbies) {
+    return Hobby.find({
+        'name': { $in: hobbies }
+    }, ['name', 'type', 'effort', '-_id'], function (err, docs) {
+        if (docs) {
+        }
+        else {
+            console.log(`Error with saving hobbies: ${err}`);
+        }
+    });
+}
+
 
 module.exports = router;
