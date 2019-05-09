@@ -187,14 +187,12 @@ router.post(
         } else {
             profileFields.hobbies = [];
         }
-
         Profile.findOne({ user: req.user.id })
             .then(profile => {
                 if (profile) {
                     // Update
                     findAllProfileSubdocuments(profileFields.personality, profileFields.profession, profileFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
-
                             profileFields.personality = personality;
                             profileFields.profession = profession;
                             profileFields.hobbies = hobbies;
@@ -224,9 +222,11 @@ router.post(
                     findAllProfileSubdocuments(profileFields.personality, profileFields.profession, profileFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
 
-                            profileFields.personality = isEmpty(personality) ? null : personality;
+                            profileFields.personality = personality;
                             profileFields.profession = isEmpty(profession) ? null : profession;
                             profileFields.hobbies = hobbies;
+
+
                             new Profile(profileFields).save().then(profile => res.json(profile));
 
 
@@ -305,7 +305,6 @@ router.post(
         if (req.body.maritalStatus) profilePreferenceFields.maritalStatus = req.body.maritalStatus;
 
         // number fields
-        console.log(req.body.age);
         req.body.age = JSON.parse(req.body.age);
         if (req.body.age.from && req.body.age.to) {
             profilePreferenceFields.age = req.body.age;
@@ -341,12 +340,12 @@ router.post(
             .then(profile => {
                 if (profile) {
 
-                    // Check if profilePreference exists
+                    // Check if profile preference exists
                     const profilePreferences = profile.partnersProfilePreference;
                     for (let profile of profilePreferences) {
                         if (profile.name === profilePreferenceFields.name) {
                             errors.name = "That name already exists";
-                            res.status(400).json(errors);
+                            return res.status(400).json(errors);
                         }
                     }
 
@@ -371,7 +370,7 @@ router.post(
                                     $push: { partnersProfilePreference: preference }
                                 },
                                 { new: true },
-                            ).then(profile => res.json(profile))
+                            ).then(profile => res.status(200).json(profile))
                                 .catch((err) => console.log(`Error when updating: ${err}`));
                         })
 
@@ -453,9 +452,8 @@ function findAllProfileSubdocuments(person, prof, hob) {
                 return Promise.all([personality, findProfessionByName(prof)])
             }
             else {
-                console.log(personality);
                 errors.personality = "This personality doesn't exist. If it is please contact with us!";
-                return Promise.all([{}, findProfessionByName(prof)])
+                return Promise.all([{ errors }, findProfessionByName(prof)])
             }
         })
         .then(([personality, profession]) => {
@@ -465,7 +463,7 @@ function findAllProfileSubdocuments(person, prof, hob) {
             else {
                 errors.profession = "This profession doesn't exist. If it is please contact with us!"
                 profession = {};
-                return Promise.all([personality, {}, findHobbiesByName(hob)])
+                return Promise.all([personality, { errors }, findHobbiesByName(hob)])
             }
         })
         .catch((err) => console.log(`Error when preparing profilefields: ${err}`))
@@ -474,14 +472,9 @@ function findAllProfileSubdocuments(person, prof, hob) {
 function findPersonalityByName(personality) {
     return Personality.findOne({ name: personality }, ["name", "shortcut", "role", "description", "traits", "-_id"])
         .then(personality => {
-            let personalityObject;
-            if (personality === null)
-                personalityObject = {};
-            else
-                personalityObject = personality;
-
+            const personalityObject = personality ? personality : {};
             return Promise.resolve(personalityObject);
-        });
+        })
 }
 
 function findProfessionByName(profession) {

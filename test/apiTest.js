@@ -5,6 +5,7 @@ const profileTest = require('./profileTest');
 const cleanAfterTest = require('./clean');
 
 // ==== user API test ====
+cleanAfterTest(app, request);
 userTest(app, request);
 profileTest(app, request);
-cleanAfterTest(app, request);
+// cleanAfterTest(app, request);
