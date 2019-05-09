@@ -133,6 +133,16 @@ router.get(
  * @apiName EditCurrentUserProfile or create one
  * @apiGroup Profiles
  * @apiPermission Private
+ * @apiParam {String} handle Handle to user profile
+ * @apiParam {String} sex User sex - one of option from "[MALE, FEMALE, OTHER]"
+ * @apiParam {Number} age User age
+ * @apiParam {String} location User location
+ * @apiParam {String} motivation User motivation - one of option "['BORED', 'FRIENDS', 'LOVE', 'JUST_CHAT', 'OTHER']"
+ * @apiParam {String} maritalStatus User mariatal status - one of option "['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']"
+ * @apiParam {String} personality User personality name
+ * @apiParam {String} profession User profession name
+ * @apiParam {String} hobbies User hobbies name separated by comma for example "Archery, Animation"
+ * @apiParam {String} bio Description about user
  */
 router.post(
     '/edit',
@@ -280,12 +290,32 @@ router.get(
  * @apiName AddPartnerPreference
  * @apiGroup Profiles
  * @apiPermission Private
+ * @apiParam {String} name Name to identify user partner profile preference
+ * @apiParam {String} sex Partner sex - one of option from "[MALE, FEMALE, OTHER]"
+ * @apiParam {String} age Partner age between two number - "{from: 20, to: 22}" (stringified)
+ * @apiParam {String} location Partner location
+ * @apiParam {String} motivation Partner motivation to looking for somebody - one of option "['BORED', 'FRIENDS', 'LOVE', 'JUST_CHAT', 'OTHER']"
+ * @apiParam {String} maritalStatus Partner mariatal status - one of option "['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']"
+ * @apiParam {String} personality Partner personality name
+ * @apiParam {String} profession Partner profession name
+ * @apiParam {String} hobbies Partner hobbies name separated by comma for example "Archery, Animation"
+ * @apiParam {String} precedence  Define traits precedence stringify {
+    profileTraitName: {
+      type: String,
+    },
+    precedence: {
+      type: Number,
+    },
+    isRequired: {
+      type: Boolean,
+    }
+  }
  */
 router.post(
     '/preferences/add',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {
-
+        console.log(req.body);
         const { errors, isValid } = validateProfilePreferences(req.body);
 
         if (!isValid) {
@@ -384,6 +414,7 @@ router.post(
  * @apiName DeletePartnerPreference
  * @apiGroup Profiles
  * @apiPermission Private
+ * @apiParam {String} name Partner profile name
  */
 router.post('/preferences/:name/delete',
     passport.authenticate('jwt', { session: false }),
@@ -396,7 +427,8 @@ router.post('/preferences/:name/delete',
                         { user: req.user.id },
                         {
                             $pull: { partnersProfilePreference: { name: req.params.name } }
-                        }
+                        },
+                        { new: true }
                     )
                         .then(profile => res.json(profile))
                         .catch((err) => console.log(`Error when deleting preference: ${err}`));
@@ -413,6 +445,7 @@ router.post('/preferences/:name/delete',
  * @apiName GetPartnerProfile
  * @apiGroup Profiles
  * @apiPermission Private
+ * @apiParam {String} name Partner profile name
  */
 router.get(
     '/preferences/:name',

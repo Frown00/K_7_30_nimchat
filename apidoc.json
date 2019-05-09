@@ -1,7 +1,7 @@
 {
   "name": "nimchat",
   "version": "0.1.0",
-  "description": "App for chat with persons, whose are found by user demands",
+  "description": "App for chat with matched person to user",
   "title": "Chat app",
   "url": ""
 }
