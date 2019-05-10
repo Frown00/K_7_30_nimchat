@@ -9,6 +9,7 @@ const validateProfilePreferences = require('../../validation/profilePreferences'
 const handleRandom = require('../../utilities/randomId');
 const isEmpty = require('../../validation/isEmpty');
 const Profile = require('../../models/Profile');
+const User = require('../../models/User');
 const Personality = require('../../models/Personality');
 
 
@@ -197,6 +198,7 @@ router.post(
         } else {
             profileFields.hobbies = [];
         }
+
         Profile.findOne({ user: req.user.id })
             .then(profile => {
                 if (profile) {
