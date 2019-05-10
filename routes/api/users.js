@@ -9,9 +9,12 @@ const passport = require('passport');
 // Load Input Validation
 const validateRegisterInput = require('../../validation/register');
 const validateLoginInput = require('../../validation/login');
+const isEmpty = require('../../validation/isEmpty');
 
-// Load user model
+// Load models
 const User = require('../../models/User');
+const Profile = require('../../models/Profile');
+
 
 router.get('/test', (req, res) => res.json({ msg: "Users works" })
 );
@@ -161,18 +164,33 @@ router.post('/delete',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {
         const id = req.user.id;
-        let message = { message: "" }
-        User.deleteOne({ _id: id }, function (err) {
+        let message = {};
+        let errors = {};
+        Profile.deleteOne({ user: id }, function (err) {
             if (!err) {
-                message.message = "User deleted"
-            }
-            else {
-                message.message = "error";
+                message.profile = "Profile deleted"
+            } else {
+                errors.profile = "Something gone wrong!";
             }
         })
-            .then(() => {
-                return res.status(204).json(message);
+            .then((profile) => {
+                User.deleteOne({ _id: id }, function (err) {
+                    if (!err) {
+                        message.user = "User deleted"
+                    }
+                    else {
+                        errors.user = "Something gone wrong!";
+                    }
+                })
+                    .then(() => {
+                        if (isEmpty(errors))
+                            return res.status(204).json(message);
+                        else
+                            return res.status(400).json(message);
+                    })
             })
+
+
 
     }
 )

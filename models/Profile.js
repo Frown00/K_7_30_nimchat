@@ -9,21 +9,17 @@ const Schema = mongoose.Schema;
 const Personality = new Schema({
   name: {
     type: String,
-    required: true,
   },
   shortcut: {
     type: String,
-    required: true
   },
   role: {
     type: String,
     enum: ['ANALYST', 'DIPLOMAT', 'SENTINEL', 'EXPLORER'],
-    required: true
   },
   traits: [String],
   description: {
     type: String,
-    required: true
   }
 }, { _id: false });
 
@@ -58,11 +54,26 @@ const Hobby = new Schema({
   }
 }, { _id: false })
 
+const Precedence = new Schema(
+  {
+    profileTraitName: {
+      type: String,
+    },
+    precedence: {
+      type: Number,
+      default: 0
+    },
+    isRequired: {
+      type: Boolean,
+      default: false
+    }
+  }, { _id: false }
+)
+
 const PartnerPreference = new Schema({
   name: {
     type: String,
     required: true,
-    unique: true
   },
   location: {
     type: String,
@@ -98,7 +109,9 @@ const PartnerPreference = new Schema({
   maritalStatus: {
     type: String,
     enum: ['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']
-  }
+  },
+  precedence: [Precedence]
+
 }, { _id: false });
 
 
@@ -143,7 +156,10 @@ const ProfileSchema = new Schema({
     type: String,
     enum: ['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']
   },
-  partnersProfilePreference: [PartnerPreference],
+  partnersProfilePreference: {
+    type: [PartnerPreference],
+    default: []
+  },
   bio: {
     type: String
   },

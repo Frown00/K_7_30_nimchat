@@ -134,6 +134,16 @@ router.get(
  * @apiName EditCurrentUserProfile or create one
  * @apiGroup Profiles
  * @apiPermission Private
+ * @apiParam {String} handle Handle to user profile
+ * @apiParam {String} sex User sex - one of option from "[MALE, FEMALE, OTHER]"
+ * @apiParam {Number} age User age
+ * @apiParam {String} location User location
+ * @apiParam {String} motivation User motivation - one of option "['BORED', 'FRIENDS', 'LOVE', 'JUST_CHAT', 'OTHER']"
+ * @apiParam {String} maritalStatus User mariatal status - one of option "['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']"
+ * @apiParam {String} personality User personality name
+ * @apiParam {String} profession User profession name
+ * @apiParam {String} hobbies User hobbies name separated by comma for example "Archery, Animation"
+ * @apiParam {String} bio Description about user
  */
 router.post(
     '/edit',
@@ -188,20 +198,13 @@ router.post(
         } else {
             profileFields.hobbies = [];
         }
-        console.log(req.body.name);
-        User.findOneAndUpdate(
-            { _id: req.user.id },
-            { name: req.body.name }
-        )
-            .then((user) => errors.name = "Wrong name!");
 
         Profile.findOne({ user: req.user.id })
             .then(profile => {
                 if (profile) {
                     // Update
-                    prepareProfileFields(profileFields.personality, profileFields.profession, profileFields.hobbies)
+                    findAllProfileSubdocuments(profileFields.personality, profileFields.profession, profileFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
-
                             profileFields.personality = personality;
                             profileFields.profession = profession;
                             profileFields.hobbies = hobbies;
@@ -228,12 +231,14 @@ router.post(
                         });
 
                     // Save
-                    prepareProfileFields(profileFields.personality, profileFields.profession, profileFields.hobbies)
+                    findAllProfileSubdocuments(profileFields.personality, profileFields.profession, profileFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
 
-                            profileFields.personality = isEmpty(personality) ? null : personality;
+                            profileFields.personality = personality;
                             profileFields.profession = isEmpty(profession) ? null : profession;
                             profileFields.hobbies = hobbies;
+
+
                             new Profile(profileFields).save().then(profile => res.json(profile));
 
 
@@ -244,63 +249,6 @@ router.post(
     }
 );
 
-function prepareProfileFields(person, prof, hob) {
-    return findPersonalityByName(person)
-        .then((personality) => {
-            if (personality) {
-                return Promise.all([personality, findProfessionByName(prof)])
-            }
-            else {
-                console.log(personality);
-                errors.personality = "This personality doesn't exist. If it is please contact with us!";
-                return Promise.all([{}, findProfessionByName(prof)])
-            }
-        })
-        .then(([personality, profession]) => {
-            if (profession) {
-                return Promise.all([personality, profession, findHobbiesByName(hob)])
-            }
-            else {
-                errors.profession = "This profession doesn't exist. If it is please contact with us!"
-                profession = {};
-                return Promise.all([personality, {}, findHobbiesByName(hob)])
-            }
-        })
-        .catch((err) => console.log(`Error when preparing profilefields: ${err}`))
-}
-
-function findPersonalityByName(personality) {
-    return Personality.findOne({ name: personality }, ["name", "shortcut", "role", "description", "traits", "-_id"])
-        .then(personality => {
-            let personalityObject;
-            if (personality === null)
-                personalityObject = {};
-            else
-                personalityObject = personality;
-
-            return Promise.resolve(personalityObject);
-        });
-}
-
-function findProfessionByName(profession) {
-    return Profession.findOne({ name: profession }, ['name', 'type', '-_id'])
-        .then(profession => {
-            const professionObject = profession ? profession : {};
-            return Promise.resolve(professionObject);
-        })
-}
-
-function findHobbiesByName(hobbies) {
-    return Hobby.find({
-        'name': { $in: hobbies }
-    }, ['name', 'type', 'effort', '-_id'], function (err, docs) {
-        if (docs) {
-        }
-        else {
-            console.log(`Error with saving hobbies: ${err}`);
-        }
-    });
-}
 
 /**
  * @api {get} api/profiles/preferences Request for all user partners profiles
@@ -344,12 +292,32 @@ router.get(
  * @apiName AddPartnerPreference
  * @apiGroup Profiles
  * @apiPermission Private
+ * @apiParam {String} name Name to identify user partner profile preference
+ * @apiParam {String} sex Partner sex - one of option from "[MALE, FEMALE, OTHER]"
+ * @apiParam {String} age Partner age between two number - "{from: 20, to: 22}" (stringified)
+ * @apiParam {String} location Partner location
+ * @apiParam {String} motivation Partner motivation to looking for somebody - one of option "['BORED', 'FRIENDS', 'LOVE', 'JUST_CHAT', 'OTHER']"
+ * @apiParam {String} maritalStatus Partner mariatal status - one of option "['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']"
+ * @apiParam {String} personality Partner personality name
+ * @apiParam {String} profession Partner profession name
+ * @apiParam {String} hobbies Partner hobbies name separated by comma for example "Archery, Animation"
+ * @apiParam {String} precedence  Define traits precedence stringify {
+    profileTraitName: {
+      type: String,
+    },
+    precedence: {
+      type: Number,
+    },
+    isRequired: {
+      type: Boolean,
+    }
+  }
  */
 router.post(
     '/preferences/add',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {
-
+        console.log(req.body);
         const { errors, isValid } = validateProfilePreferences(req.body);
 
         if (!isValid) {
@@ -369,7 +337,6 @@ router.post(
         if (req.body.maritalStatus) profilePreferenceFields.maritalStatus = req.body.maritalStatus;
 
         // number fields
-        console.log(req.body.age);
         req.body.age = JSON.parse(req.body.age);
         if (req.body.age.from && req.body.age.to) {
             profilePreferenceFields.age = req.body.age;
@@ -393,29 +360,29 @@ router.post(
                 return hobby.trim();
             }
             );
-
         } else {
             profilePreferenceFields.hobbies = [];
+        }
+
+        if (req.body.precedence) {
+            profilePreferenceFields.precedence = JSON.parse(req.body.precedence);
         }
         // profilePreferenceFields = JSON.parse(JSON.stringify(profilePreferenceFields).replace(/'/g, '"'));
         Profile.findOne({ user: req.user.id })
             .then(profile => {
                 if (profile) {
 
-                    // Check if profilePreference exists
+                    // Check if profile preference exists
                     const profilePreferences = profile.partnersProfilePreference;
                     for (let profile of profilePreferences) {
                         if (profile.name === profilePreferenceFields.name) {
                             errors.name = "That name already exists";
-                            res.status(400).json(errors);
+                            return res.status(400).json(errors);
                         }
                     }
 
-                    prepareProfileFields(profilePreferenceFields.personality, profilePreferenceFields.profession, profilePreferenceFields.hobbies)
+                    findAllProfileSubdocuments(profilePreferenceFields.personality, profilePreferenceFields.profession, profilePreferenceFields.hobbies)
                         .then(([personality, profession, hobbies]) => {
-                            console.log(personality);
-                            console.log(profession);
-                            console.log(hobbies);
                             let preference = {
                                 "name": profilePreferenceFields.name,
                                 "location": profilePreferenceFields.location,
@@ -425,7 +392,8 @@ router.post(
                                 "age": profilePreferenceFields.age,
                                 "personality": personality,
                                 "profession": profession,
-                                "hobbies": hobbies
+                                "hobbies": hobbies,
+                                "precedence": profilePreferenceFields.precedence
                             }
 
                             Profile.findOneAndUpdate(
@@ -434,7 +402,7 @@ router.post(
                                     $push: { partnersProfilePreference: preference }
                                 },
                                 { new: true },
-                            ).then(profile => res.json(profile))
+                            ).then(profile => res.status(200).json(profile))
                                 .catch((err) => console.log(`Error when updating: ${err}`));
                         })
 
@@ -448,6 +416,7 @@ router.post(
  * @apiName DeletePartnerPreference
  * @apiGroup Profiles
  * @apiPermission Private
+ * @apiParam {String} name Partner profile name
  */
 router.post('/preferences/:name/delete',
     passport.authenticate('jwt', { session: false }),
@@ -460,7 +429,8 @@ router.post('/preferences/:name/delete',
                         { user: req.user.id },
                         {
                             $pull: { partnersProfilePreference: { name: req.params.name } }
-                        }
+                        },
+                        { new: true }
                     )
                         .then(profile => res.json(profile))
                         .catch((err) => console.log(`Error when deleting preference: ${err}`));
@@ -477,6 +447,7 @@ router.post('/preferences/:name/delete',
  * @apiName GetPartnerProfile
  * @apiGroup Profiles
  * @apiPermission Private
+ * @apiParam {String} name Partner profile name
  */
 router.get(
     '/preferences/:name',
@@ -508,5 +479,58 @@ router.get(
             })
     }
 );
+
+function findAllProfileSubdocuments(person, prof, hob) {
+    return findPersonalityByName(person)
+        .then((personality) => {
+            if (personality) {
+                return Promise.all([personality, findProfessionByName(prof)])
+            }
+            else {
+                errors.personality = "This personality doesn't exist. If it is please contact with us!";
+                return Promise.all([{ errors }, findProfessionByName(prof)])
+            }
+        })
+        .then(([personality, profession]) => {
+            if (profession) {
+                return Promise.all([personality, profession, findHobbiesByName(hob)])
+            }
+            else {
+                errors.profession = "This profession doesn't exist. If it is please contact with us!"
+                profession = {};
+                return Promise.all([personality, { errors }, findHobbiesByName(hob)])
+            }
+        })
+        .catch((err) => console.log(`Error when preparing profilefields: ${err}`))
+}
+
+function findPersonalityByName(personality) {
+    return Personality.findOne({ name: personality }, ["name", "shortcut", "role", "description", "traits", "-_id"])
+        .then(personality => {
+            const personalityObject = personality ? personality : {};
+            return Promise.resolve(personalityObject);
+        })
+}
+
+function findProfessionByName(profession) {
+    return Profession.findOne({ name: profession }, ['name', 'type', '-_id'])
+        .then(profession => {
+            const professionObject = profession ? profession : {};
+            return Promise.resolve(professionObject);
+        })
+}
+
+function findHobbiesByName(hobbies) {
+    return Hobby.find({
+        'name': { $in: hobbies }
+    }, ['name', 'type', 'effort', '-_id'], function (err, docs) {
+        if (docs) {
+        }
+        else {
+            console.log(`Error with saving hobbies: ${err}`);
+        }
+    });
+}
+
 
 module.exports = router;
