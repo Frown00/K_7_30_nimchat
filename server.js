@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 
+
 const users = require('./routes/api/users');
 const profiles = require('./routes/api/profiles');
 const personalities = require('./routes/api/personalities');
 const hobbies = require('./routes/api/hobbies');
 const professions = require('./routes/api/professions');
+const search = require('./routes/api/search');
 
 
 const app = express()
@@ -41,12 +43,30 @@ app.use('/api/profiles', profiles);
 app.use('/api/personalities', personalities);
 app.use('/api/hobbies', hobbies);
 app.use('/api/professions', professions);
+app.use('/api/search', search);
+
+const http = require('http');
+const server = http.createServer(app);
+const io = require('socket.io').listen(server);
+
+io.on('connection', (socket) => {
+    console.log("user connected");
+    socket.on('disconnect', function () {
+        console.log('User disconnected');
+    });
+
+    socket.on('example_message', function (msg) {
+        console.log('message: ' + msg);
+    });
+});
+
+
 
 port = process.env.PORT || 5000;
 
 if (!module.parent) {
-    app.listen(port, () => console.log(`Server runnning on port ${port}!`));
+    server.listen(port, () => console.log(`Server runnning on port ${port}!`));
 }
 
 
-module.exports = app;
+module.exports = server;
