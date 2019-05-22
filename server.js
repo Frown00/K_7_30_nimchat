@@ -47,10 +47,12 @@ app.use('/api/search', search);
 
 const http = require('http');
 const server = http.createServer(app);
-const io = require('socket.io').listen(server);
+global.io = require('socket.io').listen(server);
 
 io.on('connection', (socket) => {
     console.log("user connected");
+    // io.emit('message', 'Wyslano');
+
     socket.on('disconnect', function () {
         console.log('User disconnected');
     });

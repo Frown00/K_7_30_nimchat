@@ -7,7 +7,7 @@ const Message = require('../../models/Message');
 
 router.get('/messages',
   (req, res) => {
-    Message.find({}, (err, messages) => {
+    Message.find({}).sort({ 'created_at': 'desc' }).exec((err, messages) => {
       res.json(messages);
     })
   }
@@ -28,7 +28,7 @@ router.post('/message',
     message.save((err) => {
       if (err)
         sendStatus(500);
-      // io.emit('message', req.body);
+      io.emit('message', req.body);
       res.status(200).json(message);
     })
   }
