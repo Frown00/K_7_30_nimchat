@@ -36,4 +36,38 @@ router.post('/message',
 
 );
 
+router.post(
+  '/enqueue',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const errors = {};
+    User.findOne({ user: req.user.id })
+      .then(user => {
+        if (!user) {
+          return res.status(404).json({ error: "User does not exists" });
+        }
+        else {
+
+        }
+      })
+    Profile.findOne({ user: req.user.id })
+      .populate('user', ['name', 'avatar'])
+      .then(profile => {
+        if (!profile) {
+          errors.noprofile = 'Thers is no profile for this user';
+          return res.status(404).json(errors);
+        }
+        profile["age"] = profile["age"] > 0 ? profile["age"] : '';
+        //console.log(profile);
+        res.json(profile);
+      })
+      .catch(err => res.status(404).json(err));
+  }
+);
+
+router.post('/enqueue',
+  (req, res) => {
+
+  });
+
 module.exports = router;
