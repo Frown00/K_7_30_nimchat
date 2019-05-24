@@ -66,14 +66,14 @@ const queue = io.of('/queue');
 let userCount = 0;
 let usersInQueue = [];
 let match = {};
-queue.on('connection', function (socket) {
+queue.on('connection', (socket) => {
     console.log('someone connected');
     socket.on('disconnect', function () {
         console.log('someone disconnect');
         // usersInQueue = _.remove(usersInQueue, (u) => {
         //     return u.user.id === user.id;
         // })
-        if (socket.username !== undefined) {
+        if (socket.user !== undefined) {
             removeUserFromQueue(usersInQueue, user);
         }
     });
@@ -81,13 +81,14 @@ queue.on('connection', function (socket) {
     socket.emit('get_users_count', usersInQueue.length);
 
     socket.on('enqueue', function (user) {
-        socket.username = user.user.id;
+        socket.user = user.user.id;
         console.log(usersInQueue);
 
         if (isInQueue(usersInQueue, user)) {
             console.log("Już jest w kolejce");
         }
         else {
+            user.socketId = socket.id;
             usersInQueue.push(user);
         }
         for (let i = 0; i < usersInQueue.length; i++) {
@@ -95,16 +96,22 @@ queue.on('connection', function (socket) {
                 if (isMatch(user, usersInQueue[i])) {
                     socket.emit('partner_found', usersInQueue[i]);
                     removeUserFromQueue(usersInQueue, usersInQueue[i].user);
+                    break;
                 }
             }
         }
 
+        socket.on('send_info_to_partner', function (data) {
+            io.of('queue').to(data[1].socketId).emit('response_partner', data[0]);
 
+
+        });
     })
 
     socket.on('dequeue', function (user) {
         // console.log(user);
-        removeUserFromQueue(usersInQueue, user);
+        if (user !== null || user !== undefined)
+            removeUserFromQueue(usersInQueue, user);
         // console.log(usersInQueue);
     })
 
@@ -132,9 +139,12 @@ function isSame(user1, user2) {
 }
 
 function isMatch(user1, user2) {
-    if (user1.profile.sex === user2.profile.sex) {
-        return true;
+    if (user1.profile !== null && user2.profile !== null) {
+        if (user1.profile.sex === user2.profile.sex) {
+            return true;
+        }
     }
+
     return false;
 }
 
