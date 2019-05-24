@@ -56,14 +56,8 @@ io.on('connection', (socket) => {
     // io.emit('message', 'Wyslano');
 
     socket.on('disconnect', function () {
-        console.log('User disconnected');
+        // console.log('User disconnected');
     });
-
-    socket.on('example_message', function (msg) {
-        console.log('message: ' + msg);
-    });
-
-    socket.join('queue');
 
 });
 
@@ -73,19 +67,21 @@ let userCount = 0;
 let usersInQueue = [];
 let match = {};
 queue.on('connection', function (socket) {
-
     console.log('someone connected');
     socket.on('disconnect', function () {
         console.log('someone disconnect');
-        usersInQueue = _.remove(usersInQueue, (u) => {
-            return u.user.id === user.id;
-        })
+        // usersInQueue = _.remove(usersInQueue, (u) => {
+        //     return u.user.id === user.id;
+        // })
+        if (socket.username !== undefined) {
+            removeUserFromQueue(usersInQueue, user);
+        }
     });
 
     socket.emit('get_users_count', usersInQueue.length);
 
     socket.on('enqueue', function (user) {
-
+        socket.username = user.user.id;
         console.log(usersInQueue);
 
         if (isInQueue(usersInQueue, user)) {
@@ -98,6 +94,7 @@ queue.on('connection', function (socket) {
             if (!isSame(user.user, usersInQueue[i].user)) {
                 if (isMatch(user, usersInQueue[i])) {
                     socket.emit('partner_found', usersInQueue[i]);
+                    removeUserFromQueue(usersInQueue, usersInQueue[i].user);
                 }
             }
         }
@@ -107,15 +104,19 @@ queue.on('connection', function (socket) {
 
     socket.on('dequeue', function (user) {
         // console.log(user);
-        usersInQueue = _.remove(usersInQueue, (u) => {
-            return u.user.id === user.id;
-        })
+        removeUserFromQueue(usersInQueue, user);
         // console.log(usersInQueue);
     })
 
 
 
 })
+
+function removeUserFromQueue(usersInQueue, user) {
+    usersInQueue = _.remove(usersInQueue, (u) => {
+        return u.user.id === user.id;
+    })
+}
 
 function isInQueue(usersInQueue, user) {
     let usersInQueueIds = _.map(usersInQueue, 'user.user.id');
