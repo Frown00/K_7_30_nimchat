@@ -4,37 +4,93 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 
 const Conversation = require('../../models/Conversation');
+mongoose.set('useFindAndModify', false);
 
-// router.get('/messages',
-//   (req, res) => {
-//     Conversation.find({}).sort({ 'created_at': 'desc' }).exec((err, messages) => {
-//       res.json(messages);
-//     })
-//   }
-// );
+router.post('/conversation/new',
+  (req, res) => {
+    let conversationFields = {};
 
-// router.post('/message',
-//   (req, res) => {
+    if (req.body.user1)
+      conversationFields.user1 = req.body.user1;
 
-//     const messageFields = {};
+    if (req.body.user2)
+      conversationFields.user2 = req.body.user2;
 
-//     if (req.body.name)
-//       messageFields.name = req.body.name;
+    // conversation.messages = [];
+    Conversation.findOne(
+      { $or: [{ user1: conversationFields.user1 }, { user1: conversationFields.user2 }] },
+      { $or: [{ user2: conversationFields.user2 }, { user2: conversationFields.user1 }] })
+      .then(conversation => {
+        if (conversation) {
+          console.log("jest już");
+          return res.status(200).json(conversation);
+        }
+        else {
+          console.log("nie ma")
+          const conv = new Conversation(conversationFields);
 
-//     if (req.body.message)
-//       messageFields.message = req.body.message;
-
-//     const message = new Message(messageFields);
-//     message.save((err) => {
-//       if (err)
-//         sendStatus(500);
-//       io.emit('message', req.body);
-//       res.status(200).json(message);
-//     })
-//   }
+          conv.save((err) => {
+            if (err)
+              return res.status(500).json("Error while saving conversation");
+            else
+              return res.status(200).json(conv);
+          })
+        }
+      })
+      .catch(err => console.log(err));
 
 
-// );
+    //     message.save((err) => {
+    //       if (err)
+    //         sendStatus(500);
+    //       io.emit('message', req.body);
+    //       res.status(200).json(message);
+    //     })
+  }
+);
+
+router.post('/conversation/message',
+  (req, res) => {
+    let messageFields = {};
+    if (req.body.userName)
+      messageFields.userName = req.body.userName;
+
+    if (req.body.message && req.body.message !== "")
+      messageFields.message = req.body.message;
+
+    // const message = new Message(messageFields);
+    Conversation.findOneAndUpdate(
+      { _id: req.body.conversationId },
+      { $push: { messages: messageFields } },
+      { new: true })
+      .then((conv) => {
+        // console.log(conv);
+        if (conv) {
+          io.emit('message', messageFields);
+          res.status(200).json(messageFields);
+        }
+      })
+
+
+  });
+
+router.post('/conversation/messages',
+  (req, res) => {
+    Conversation.findOne(
+      { _id: req.body.conversationId }
+    )
+      .then(conv => {
+
+        if (conv !== null && conv.messages !== null && conv.messages !== []) {
+          res.status(200).json(conv.messages);
+
+        }
+        else {
+          res.status(404).json({ noMessages: "no messages" })
+        }
+      })
+  });
+
 
 // router.post(
 //   '/enqueue',

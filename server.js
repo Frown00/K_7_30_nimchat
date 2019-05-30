@@ -68,21 +68,20 @@ let usersInQueue = [];
 let match = {};
 queue.on('connection', (socket) => {
     console.log('someone connected');
-    socket.on('disconnect', function () {
+    socket.on('disconnect', () => {
+        console.log(socket.user);
         console.log('someone disconnect');
         // usersInQueue = _.remove(usersInQueue, (u) => {
         //     return u.user.id === user.id;
         // })
-        if (socket.user !== undefined) {
-            removeUserFromQueue(usersInQueue, user);
+        if (socket.user !== undefined || socket.user !== null) {
+            removeUserFromQueue(usersInQueue, socket.user);
         }
     });
-
     socket.emit('get_users_count', usersInQueue.length);
 
     socket.on('enqueue', function (user) {
         socket.user = user.user.id;
-        console.log(usersInQueue);
 
         if (isInQueue(usersInQueue, user)) {
             console.log("Już jest w kolejce");
@@ -110,8 +109,9 @@ queue.on('connection', (socket) => {
 
     socket.on('dequeue', function (user) {
         // console.log(user);
-        if (user !== null || user !== undefined)
-            removeUserFromQueue(usersInQueue, user);
+        usersInQueue = removeUserFromQueue(usersInQueue, user);
+        console.log(usersInQueue);
+        console.log("Anulowaol");
         // console.log(usersInQueue);
     })
 
@@ -120,9 +120,12 @@ queue.on('connection', (socket) => {
 })
 
 function removeUserFromQueue(usersInQueue, user) {
-    usersInQueue = _.remove(usersInQueue, (u) => {
-        return u.user.id === user.id;
-    })
+    if (user) {
+        return usersInQueue = _.remove(usersInQueue, (u) => {
+            return u.user.id === user.id;
+        })
+    }
+
 }
 
 function isInQueue(usersInQueue, user) {
