@@ -78,60 +78,79 @@ queue.on('connection', (socket) => {
             removeUserFromQueue(usersInQueue, socket.user);
         }
     });
-    socket.emit('get_users_count', usersInQueue.length);
 
-    socket.on('enqueue', function (user) {
+    socket.on('enqueue', (user) => {
         socket.user = user.user.id;
-
-        if (isInQueue(usersInQueue, user)) {
+        if (isInQueue(usersInQueue, socket.user)) {
             console.log("Już jest w kolejce");
         }
         else {
             user.socketId = socket.id;
-            usersInQueue.push(user);
+            if (usersInQueue !== undefined && usersInQueue !== null)
+                usersInQueue.push(user);
         }
-        for (let i = 0; i < usersInQueue.length; i++) {
-            if (!isSame(user.user, usersInQueue[i].user)) {
-                if (isMatch(user, usersInQueue[i])) {
-                    socket.emit('partner_found', usersInQueue[i]);
-                    removeUserFromQueue(usersInQueue, usersInQueue[i].user);
-                    break;
+
+        // console.log(usersInQueue);
+        if (usersInQueue !== undefined && usersInQueue !== null) {
+            for (let i = 0; i < usersInQueue.length; i++) {
+                if (!isSame(user.user, usersInQueue[i].user)) {
+                    if (isMatch(user, usersInQueue[i])) {
+                        socket.emit('partner_found', usersInQueue[i]);
+                        removeUserFromQueue(usersInQueue, usersInQueue[i].user.id);
+                        break;
+                    }
                 }
             }
         }
 
-        socket.on('send_info_to_partner', function (data) {
-            io.of('queue').to(data[1].socketId).emit('response_partner', data[0]);
 
+        socket.on('send_info_to_partner', (data) => {
+            io.of('queue').to(data[1].socketId).emit('response_partner', data[0]);
+            // remove partner - data[0] contains partner info
+            // console.log(data[0].user);
+            removeUserFromQueue(usersInQueue, data[0].user.id);
 
         });
+
+        io.of('queue').emit('get_users_count', usersInQueue.length);
+
     })
 
-    socket.on('dequeue', function (user) {
+    socket.on('dequeue', (user) => {
         // console.log(user);
-        usersInQueue = removeUserFromQueue(usersInQueue, user);
-        console.log(usersInQueue);
+        removeUserFromQueue(usersInQueue, user.id);
         console.log("Anulowaol");
         // console.log(usersInQueue);
+
     })
 
 
 
 })
 
-function removeUserFromQueue(usersInQueue, user) {
-    if (user) {
-        return usersInQueue = _.remove(usersInQueue, (u) => {
-            return u.user.id === user.id;
+function removeUserFromQueue(usersInQueue, userId) {
+    if (userId) {
+        usersInQueue = _.remove(usersInQueue, (u) => {
+            return u.user.id === userId;
         })
+        if (usersInQueue === undefined) {
+            usersInQueue = []
+            return usersInQueue;
+        }
+
+        return usersInQueue;
     }
 
 }
 
 function isInQueue(usersInQueue, user) {
-    let usersInQueueIds = _.map(usersInQueue, 'user.user.id');
-    let userId = user.id;
-    return _.includes(usersInQueueIds, userId);
+    if (user) {
+        let usersInQueueIds = _.map(usersInQueue, 'user.id');
+        // console.log(usersInQueueIds);
+        let userId = user.id;
+        return _.includes(usersInQueueIds, userId);
+    }
+    return true;
 }
 
 function isSame(user1, user2) {

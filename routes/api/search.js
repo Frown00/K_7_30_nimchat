@@ -18,11 +18,17 @@ router.post('/conversation/new',
 
     // conversation.messages = [];
     Conversation.findOne(
-      { $or: [{ user1: conversationFields.user1 }, { user1: conversationFields.user2 }] },
-      { $or: [{ user2: conversationFields.user2 }, { user2: conversationFields.user1 }] })
+      {
+        $or: [
+          { $and: [{ user1: conversationFields.user1 }, { user2: conversationFields.user2 }] },
+          { $and: [{ user1: conversationFields.user2 }, { user2: conversationFields.user1 }] }
+        ]
+      }
+    )
       .then(conversation => {
         if (conversation) {
           console.log("jest już");
+          // console.log(conversation);
           return res.status(200).json(conversation);
         }
         else {
