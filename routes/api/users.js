@@ -9,19 +9,25 @@ const passport = require('passport');
 // Load Input Validation
 const validateRegisterInput = require('../../validation/register');
 const validateLoginInput = require('../../validation/login');
+const isEmpty = require('../../validation/isEmpty');
 
-// Load user model
+// Load models
 const User = require('../../models/User');
+const Profile = require('../../models/Profile');
 
-// @route   GET api/profile/test
-// @dest    Test users route
-// @access  Public
+
 router.get('/test', (req, res) => res.json({ msg: "Users works" })
 );
 
 // @route GET api/users/register
 // @desc Register user
 // @access Public
+/**
+ *  @api {post} api/users/register Register
+ *  @apiName RegisterUser
+ *  @apiGroup Users
+ *  @apiPermission Public
+ */
 router.post('/register', (req, res) => {
     const { errors, isValid } = validateRegisterInput(req.body);
 
@@ -57,7 +63,7 @@ router.post('/register', (req, res) => {
 
                         newUser.password = hash;
                         newUser.save()
-                            .then(user => res.json(user))
+                            .then(user => res.json(user, 201))
                             .catch(err => console.log(err));
                     });
                 });
@@ -67,11 +73,32 @@ router.post('/register', (req, res) => {
 });
 
 
+router.post(
+    '/logout',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        User.findOneAndUpdate(
+            { _id: req.user.id },
+            { $set: { status: "LOGGED_OUT" } }
+        ).then(() => {
+            console.log("User logged out")
+        }).catch((err) => console.log(err))
+
+    })
+
 // @route   GET api/users/login
 // @desc    Login User / Returning JWT Token
 // @access  Public
+/**
+ * @api {post} /api/users/login Login
+ * @apiName UserLogin
+ * @apiGroup Users
+ * @apiPermission Public
+ * @apiParam {String} email       user email address
+ * @apiParam {String} password    user password
+ */
 router.post('/login', (req, res) => {
-
+    console.log(req.body);
     const { errors, isValid } = validateLoginInput(req.body);
 
     if (!isValid) {
@@ -94,19 +121,25 @@ router.post('/login', (req, res) => {
                 .then(isMatch => {
                     if (isMatch) {
                         // user matched
-
+                        user
                         // create jwt payload
                         const payload = {
                             id: user.id,
                             name: user.name,
-                            avatar: user.avatar
+                            avatar: user.avatar,
+                            status: "LOGGED_IN"
                         }
-
+                        User.findOneAndUpdate(
+                            { _id: user.id },
+                            { $set: { status: "LOGGED_IN" } },
+                            { new: true }
+                        ).then(user => console.log("User logged in"))
+                            .catch((err) => console.log(`Error when log in: ${err}`));
                         // Sign token
                         jwt.sign(
                             payload,
                             keys.secretOrKey,
-                            { expiresIn: 3600 },
+                            { expiresIn: 360000 },
                             (err, token) => {
                                 res.json({
                                     success: true,
@@ -126,6 +159,13 @@ router.post('/login', (req, res) => {
 // @route   GET api/users/current
 // @desc    Returning current user
 // @access  Private
+
+/**
+ * @api {get} api/users/current Get current user data
+ * @apiName GetCurrentUser
+ * @apiGroup Users
+ * @apiPermission Private
+ */
 router.get('/current',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {
@@ -133,8 +173,44 @@ router.get('/current',
             id: req.user.id,
             name: req.user.name,
             email: req.user.email,
-            avatar: req.user.avatar
+            avatar: req.user.avatar,
+            status: req.user.status
         });
     })
+
+router.post('/delete',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        const id = req.user.id;
+        let message = {};
+        let errors = {};
+        Profile.deleteOne({ user: id }, function (err) {
+            if (!err) {
+                message.profile = "Profile deleted"
+            } else {
+                errors.profile = "Something gone wrong!";
+            }
+        })
+            .then((profile) => {
+                User.deleteOne({ _id: id }, function (err) {
+                    if (!err) {
+                        message.user = "User deleted"
+                    }
+                    else {
+                        errors.user = "Something gone wrong!";
+                    }
+                })
+                    .then(() => {
+                        if (isEmpty(errors))
+                            return res.status(204).json(message);
+                        else
+                            return res.status(400).json(message);
+                    })
+            })
+
+
+
+    }
+)
 
 module.exports = router;

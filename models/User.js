@@ -22,6 +22,11 @@ const UserSchema = new Schema({
         type: Date,
         default: Date.now
     },
+    status: {
+        type: String,
+        enum: ["LOGGED_IN", "LOGGED_OUT", "IN_QUEUE", "CHATTING"],
+        default: "LOGGED_OUT"
+    }
 });
 
 module.exports = User = mongoose.model('users', UserSchema);
