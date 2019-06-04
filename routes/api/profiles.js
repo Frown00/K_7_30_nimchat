@@ -20,7 +20,8 @@ router.get('/test',
     (req, res) => res.json(
         {
             msg: "Profile works"
-        }));
+        })
+);
 
 
 // @route   GET api/profile/handle/:handle

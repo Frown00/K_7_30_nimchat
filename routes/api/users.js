@@ -73,6 +73,19 @@ router.post('/register', (req, res) => {
 });
 
 
+router.post(
+    '/logout',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+        User.findOneAndUpdate(
+            { _id: req.user.id },
+            { $set: { status: "LOGGED_OUT" } }
+        ).then(() => {
+            console.log("User logged out")
+        }).catch((err) => console.log(err))
+
+    })
+
 // @route   GET api/users/login
 // @desc    Login User / Returning JWT Token
 // @access  Public
@@ -85,7 +98,7 @@ router.post('/register', (req, res) => {
  * @apiParam {String} password    user password
  */
 router.post('/login', (req, res) => {
-
+    console.log(req.body);
     const { errors, isValid } = validateLoginInput(req.body);
 
     if (!isValid) {
@@ -108,7 +121,7 @@ router.post('/login', (req, res) => {
                 .then(isMatch => {
                     if (isMatch) {
                         // user matched
-
+                        user
                         // create jwt payload
                         const payload = {
                             id: user.id,
@@ -116,7 +129,12 @@ router.post('/login', (req, res) => {
                             avatar: user.avatar,
                             status: "LOGGED_IN"
                         }
-
+                        User.findOneAndUpdate(
+                            { _id: user.id },
+                            { $set: { status: "LOGGED_IN" } },
+                            { new: true }
+                        ).then(user => console.log("User logged in"))
+                            .catch((err) => console.log(`Error when log in: ${err}`));
                         // Sign token
                         jwt.sign(
                             payload,
@@ -160,6 +178,12 @@ router.get('/current',
         });
     })
 
+/**
+ * @api {post} api/users/delete Delete account
+ * @apiName DeleteAccount
+ * @apiGroup Users
+ * @apiPermission Private
+ */
 router.post('/delete',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {
