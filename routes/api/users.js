@@ -178,6 +178,12 @@ router.get('/current',
         });
     })
 
+/**
+ * @api {post} api/users/delete Delete account
+ * @apiName DeleteAccount
+ * @apiGroup Users
+ * @apiPermission Private
+ */
 router.post('/delete',
     passport.authenticate('jwt', { session: false }),
     (req, res) => {

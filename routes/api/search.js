@@ -6,6 +6,15 @@ const passport = require('passport');
 const Conversation = require('../../models/Conversation');
 mongoose.set('useFindAndModify', false);
 
+
+/**
+ * @api {post} api/search/conversation/new Create new conversation
+ * @apiName Create new conversation
+ * @apiGroup Search
+ * @apiPermission Private
+ * @apiParam {String} user1 First user id in conversation 
+ * @apiParam {String} user2 Second user id in conversation
+ */
 router.post('/conversation/new',
   (req, res) => {
     let conversationFields = {};
@@ -55,6 +64,15 @@ router.post('/conversation/new',
   }
 );
 
+/**
+ * @api {post} api/search/conversation/message Send message
+ * @apiName Send message
+ * @apiGroup Search
+ * @apiPermission Private
+ * @apiParam {String} userName Author name of message 
+ * @apiParam {String} message Content of message
+ * @apiParam {Number} conversationId Current conversation id
+ */
 router.post('/conversation/message',
   (req, res) => {
     let messageFields = {};
@@ -80,6 +98,14 @@ router.post('/conversation/message',
 
   });
 
+
+/**
+ * @api {post} api/search/conversation/messages Get all messages from current conversation
+ * @apiName Get all messages from current conversation
+ * @apiGroup Search
+ * @apiPermission Private
+ * @apiParam {Number} conversationId Current conversation id
+ */
 router.post('/conversation/messages',
   (req, res) => {
     Conversation.findOne(
