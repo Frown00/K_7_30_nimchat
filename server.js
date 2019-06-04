@@ -119,7 +119,7 @@ queue.on('connection', (socket) => {
     socket.on('dequeue', (user) => {
         // console.log(user);
         removeUserFromQueue(usersInQueue, user.id);
-        console.log("Anulowaol");
+        console.log("Anulowal");
         // console.log(usersInQueue);
 
     })
