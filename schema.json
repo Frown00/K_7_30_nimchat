@@ -1,0 +1,167 @@
+{
+  "users": {
+    "_id": {
+      "primaryKey": true,
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "string",
+      "required": true
+    },
+    "password": {
+      "type": "string",
+      "required": true
+    },
+    "avatar": {
+      "type": "string"
+    },
+    "createDate": {
+      "type": "Date",
+      "default": "Date.Now()"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "LOGGED_IN",
+        "LOGGED_OUT",
+        "IN_QUEUE",
+        "CHATTING"
+      ],
+      "default": "LOGGED_OUT"
+    }
+  },
+  "profiles": {
+    "user": {
+      "type": "ObjectId",
+      "ref": "users"
+    },
+    "handle": {
+      "type": "String",
+      "required": "true",
+      "max": "80"
+    },
+    "age": {
+      "type": "Number"
+    },
+    "sex": {
+      "type": "String",
+      "enum": "['FEMALE', 'MALE', 'OTHER']"
+    },
+    "location": {
+      "type": "String"
+    },
+    "personality": {
+      "type": "Personality",
+      "default": "null"
+    },
+    "profession": {
+      "type": "Profession",
+      "default": "null"
+    },
+    "motivation": {
+      "type": "String",
+      "enum": "['BORED', 'FRIENDS', 'LOVE', 'JUST_CHAT', 'OTHER']"
+    },
+    "hobbies": {
+      "type": "[Hobby]",
+      "default": "[]"
+    },
+    "maritalStatus": {
+      "type": "String",
+      "enum": "['SINGLE', 'DIVORCED', 'MARRIED', 'WIDOWED', 'SEPARATED', 'ENGAGED', 'HAVE_PARTNER']"
+    },
+    "partnersProfilePreference": {
+      "type": "[PartnerPreference]",
+      "default": "[]"
+    },
+    "bio": {
+      "type": "String"
+    },
+    "dateUpdated": {
+      "type": "Date",
+      "default": "Date.now()"
+    }
+  },
+  "professions": {
+    "_id": {
+      "primaryKey": true,
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "String",
+      "required": "true",
+      "unique": "true"
+    },
+    "type": {
+      "type": "String",
+      "enum": "['ENGINEERING', 'FINANCE', 'HEALTHCARE','HOSPITALITY', 'TECHNOLOGY', 'TRANSPORTATION']"
+    }
+  },
+  "personalities": {
+    "_id": {
+      "primaryKey": true,
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "String",
+      "required": "true",
+      "unique": "true"
+    },
+    "shortcut": {
+      "type": "String",
+      "required": "true"
+    },
+    "role": {
+      "type": "String",
+      "enum": "['ANALYST', 'DIPLOMAT', 'SENTINEL', 'EXPLORER']",
+      "required": "true"
+    },
+    "traits": "[String]",
+    "description": {
+      "type": "String",
+      "required": "true"
+    }
+  },
+  "hobbies": {
+    "_id": {
+      "primaryKey": true,
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "String",
+      "required": "true",
+      "unique": "true"
+    },
+    "type": {
+      "type": "String",
+      "enum": "['indoor', 'outdoor', 'collection indoor','collection outdoor', 'competitive indoor', 'competitive outdoor','observation indoor', 'observation outdoor', 'other']"
+    },
+    "effort": {
+      "type": "String",
+      "enum": "['ACTIVE', 'PASSIVE', 'OTHER']"
+    }
+  },
+  "conversations": {
+    "_id": {
+      "primaryKey": true,
+      "type": "string",
+      "required": true
+    },
+    "user1": "String",
+    "user2": "String",
+    "messages": [
+      {
+        "message": "String",
+        "userName": "String"
+      }
+    ]
+  }
+}
