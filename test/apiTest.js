@@ -8,4 +8,4 @@ const cleanAfterTest = require('./clean');
 cleanAfterTest(app, request);
 userTest(app, request);
 profileTest(app, request);
-// cleanAfterTest(app, request);
+cleanAfterTest(app, request);
