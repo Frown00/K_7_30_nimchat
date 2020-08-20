@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/Frown00/K_7_30_nimchat#readme",
   "dependencies": {
-    "bcrypt": "^3.0.5",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.18.3",
     "concurrently": "^4.1.0",
     "express": "^4.16.4",
